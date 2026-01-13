@@ -1,0 +1,171 @@
+ANGULAR FEATURE-BASED + NGRX + FILOSOFÍA SHOPIFY
+
+═══════════════════════════════════════════════════════════════
+PRINCIPIOS
+═══════════════════════════════════════════════════════════════
+
+1. Todo en ESPAÑOL (carpetas, archivos, variables, comentarios)
+2. Organización por FUNCIONALIDADES, no por tipo de archivo
+3. Filosofía SHOPIFY: Admin configura → Cliente renderiza
+4. Angular MODERNO: standalone, signals, @if/@for, inject()
+5. NgRx MODERNO: createFeature, createActionGroup, efectos funcionales
+
+═══════════════════════════════════════════════════════════════
+ESTRUCTURA DE CARPETAS
+═══════════════════════════════════════════════════════════════
+src/app/
+├── nucleo/ # Servicios globales, guardias, interceptores
+├── compartido/ # Componentes, tuberías, directivas reutilizables
+├── admin/ # Panel administrativo
+│ ├── diseno-admin/ # Layout admin
+│ └── funcionalidades/
+│ ├── panel-principal/
+│ ├── productos-admin/
+│ ├── personalizador-sitio/ # ⭐ Configura secciones visuales
+│ └── secciones-disponibles/ # ⭐ Catálogo de secciones
+├── tienda/ # Experiencia cliente
+│ ├── diseno-tienda/ # Layout tienda
+│ └── funcionalidades/
+│ ├── secciones-dinamicas/ # ⭐ Renderiza config del admin
+│ ├── inicio/
+│ ├── catalogo/
+│ ├── producto-detalle/
+│ ├── carrito/
+│ └── checkout/
+└── estado-global/
+
+CADA FUNCIONALIDAD CONTIENE:
+├── componentes/
+├── paginas/
+├── estado/ # acciones, reductor, selectores, efectos
+├── servicios/
+├── modelos/
+└── [nombre].rutas.ts
+
+═══════════════════════════════════════════════════════════════
+NOMENCLATURA ARCHIVOS
+═══════════════════════════════════════════════════════════════
+Componentes: [nombre].componente.ts
+Páginas: [nombre]-pagina.componente.ts
+Servicios: [nombre].servicio.ts / [nombre]-api.servicio.ts
+Acciones: [nombre].acciones.ts
+Reductor: [nombre].reductor.ts
+Selectores: [nombre].selectores.ts
+Efectos: [nombre].efectos.ts
+Modelos: [nombre].modelo.ts
+Guardias: [nombre].guardia.ts
+Tuberías: [nombre].tuberia.ts
+Rutas: [nombre].rutas.ts
+
+═══════════════════════════════════════════════════════════════
+ANGULAR MODERNO (OBLIGATORIO)
+═══════════════════════════════════════════════════════════════
+USAR:
+✓ standalone: true (sin NgModules)
+✓ signals: signal(), computed(), effect()
+✓ input() / output() en lugar de decoradores
+✓ inject() en lugar de constructor
+✓ @if, @for, @switch (nueva sintaxis)
+✓ provideRouter, provideHttpClient, provideStore
+
+NO USAR:
+✗ NgModules para componentes
+✗ @Input() / @Output() decoradores
+✗ *ngIf, *ngFor, [ngSwitch]
+
+EJEMPLO COMPONENTE:
+@Component({
+selector: 'app-tarjeta-producto',
+standalone: true,
+imports: [CommonModule],
+changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class TarjetaProductoComponente {
+producto = input.required<Producto>();
+alAgregar = output<Producto>();
+
+tieneDescuento = computed(() => this.producto().precioOferta !== null);
+}
+
+═══════════════════════════════════════════════════════════════
+NGRX MODERNO (OBLIGATORIO)
+═══════════════════════════════════════════════════════════════
+ACCIONES (createActionGroup):
+export const CarritoPaginaAcciones = createActionGroup({
+source: 'Carrito Pagina',
+events: {
+'Agregar Producto': props<{ productoId: string; cantidad: number }>(),
+'Eliminar Item': props<{ itemId: string }>(),
+},
+});
+
+REDUCTOR (createFeature):
+export const carritoFeature = createFeature({
+name: 'carrito',
+reducer: createReducer(
+estadoInicial,
+on(CarritoPaginaAcciones.agregarProducto, (estado) => ({
+...estado,
+estaCargando: true,
+})),
+),
+});
+
+export const { selectItems, selectEstaCargando } = carritoFeature;
+
+EFECTOS (funcionales):
+export const cargarCarrito = createEffect(
+(acciones$ = inject(Actions), api = inject(CarritoApiServicio)) => {
+return acciones$.pipe(
+ofType(CarritoPaginaAcciones.cargarCarrito),
+mergeMap(() => api.obtener().pipe(
+map((items) => CarritoApiAcciones.cargarExito({ items })),
+catchError((e) => of(CarritoApiAcciones.cargarError({ error: e.message })))
+))
+);
+},
+{ functional: true }
+);
+
+═══════════════════════════════════════════════════════════════
+FILOSOFÍA SHOPIFY - SECCIONES DINÁMICAS
+═══════════════════════════════════════════════════════════════
+CONCEPTO:
+Admin configura secciones (carrusel, banner, productos destacados)
+→ Se guarda en BD
+→ Cliente las renderiza dinámicamente
+
+TIPOS DE SECCIONES:
+'carrusel' | 'banner-hero' | 'productos-destacados' | 'categorias' |
+'testimonios' | 'newsletter' | 'galeria' | 'texto-imagen' | 'video'
+
+MODELO BASE SECCIÓN:
+interface SeccionBase {
+id: string;
+tipo: TipoSeccion;
+orden: number;
+visible: boolean;
+configuracion: Record<string, any>;
+}
+
+RENDERIZADOR (en tienda):
+@for (seccion of secciones(); track seccion.id) {
+@switch (seccion.tipo) {
+@case ('carrusel') {
+<app-seccion-carrusel [config]="seccion.configuracion" />
+}
+@case ('banner-hero') {
+<app-seccion-banner-hero [config]="seccion.configuracion" />
+}
+}
+}
+
+═══════════════════════════════════════════════════════════════
+COMENTARIOS EN CÓDIGO
+═══════════════════════════════════════════════════════════════
+Usar FASES o PASOS para explicar flujos:
+// FASE 1: Validamos datos de entrada
+// FASE 2: Llamamos al servicio
+// FASE 3: Actualizamos el estado
+
+NO saturar de comentarios. Solo lo necesario para entender.

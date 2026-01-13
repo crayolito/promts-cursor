@@ -1,0 +1,43 @@
+REGLAS DE CÓDIGO:
+
+1. IDIOMA
+
+   - Todo debe estar en español: variables, funciones, comentarios, mensajes
+   - Prohibido usar inglés en cualquier parte del código
+
+2. COMENTARIOS
+
+   - NO llenar el código de comentarios innecesarios
+   - Solo comentar al inicio de cada función explicando qué hace
+   - Dentro de funciones largas, usar PASOS o FASES para dividir la lógica
+
+3. ESTRUCTURA DE COMENTARIOS EN FUNCIONES
+   Formato:
+
+   // PASO 1: [explicación simple de qué hacemos aquí]
+   // PASO 2: [siguiente acción]
+
+   O también:
+
+   // FASE 1: [descripción clara]
+   // FASE 2: [siguiente fase]
+
+4. LENGUAJE DE COMENTARIOS
+
+   - Usar palabras simples y cotidianas
+   - Evitar términos técnicos rebuscados
+   - Escribir como si le explicaras a alguien que no sabe programar
+
+   MALO: "Iteramos el array para mapear los elementos"
+   BUENO: "Recorremos la lista y transformamos cada elemento"
+
+   MALO: "Instanciamos el objeto y ejecutamos el callback"
+   BUENO: "Creamos el objeto y ejecutamos la función cuando termine"
+
+5. NOMBRES DE VARIABLES Y FUNCIONES
+
+   - Nombres descriptivos en español
+   - Que se entienda qué guardan o qué hacen solo con leerlos
+
+   MALO: const d = obtenerData()
+   BUENO: const datosUsuario = obtenerDatosDelUsuario()
