@@ -1,0 +1,5 @@
+# Archivos de reglas vacíos o no utilizados
+.cursor/rules/*.txt
+
+# Archivos originales .txt (ya convertidos a .mdc)
+regla*.txt

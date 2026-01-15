@@ -1,3 +1,9 @@
+---
+description: NestJS - Clean Architecture - Estructura, nomenclatura y principios
+globs: ['**/*.ts', '**/*.js']
+alwaysApply: false
+---
+
 NESTJS - CLEAN ARCHITECTURE
 
 ═══════════════════════════════════════════════════════════════

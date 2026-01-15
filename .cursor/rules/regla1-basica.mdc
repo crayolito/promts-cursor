@@ -1,3 +1,9 @@
+---
+description: Reglas básicas de código - Idioma, comentarios y nomenclatura
+globs: ["**/*.ts", "**/*.js", "**/*.tsx", "**/*.jsx"]
+alwaysApply: true
+---
+
 REGLAS DE CÓDIGO:
 
 1. IDIOMA
