@@ -1,330 +1,177 @@
 ---
-description: NestJS - Clean Architecture - Estructura, nomenclatura y principios
-globs: ['**/*.ts', '**/*.js']
+description: Angular Feature-Based + NgRx + Filosofía Shopify - Estructura moderna
+globs: ["**/*.ts", "**/*.html"]
 alwaysApply: false
 ---
 
-NESTJS - CLEAN ARCHITECTURE
+ANGULAR FEATURE-BASED + NGRX + FILOSOFÍA SHOPIFY
 
 ═══════════════════════════════════════════════════════════════
 PRINCIPIOS
 ═══════════════════════════════════════════════════════════════
+
 1. Todo en ESPAÑOL (carpetas, archivos, variables, comentarios)
-2. Dependencias: AFUERA → ADENTRO (nunca al revés)
-3. Núcleo PURO: sin frameworks, sin BD, sin librerías externas
-4. Puertos definen QUÉ se necesita, Adaptadores definen CÓMO
-5. Un caso de uso = Una acción = Un archivo
+2. Organización por FUNCIONALIDADES, no por tipo de archivo
+3. Filosofía SHOPIFY: Admin configura → Cliente renderiza
+4. Angular MODERNO: standalone, signals, @if/@for, inject()
+5. NgRx MODERNO: createFeature, createActionGroup, efectos funcionales
 
 ═══════════════════════════════════════════════════════════════
 ESTRUCTURA DE CARPETAS
 ═══════════════════════════════════════════════════════════════
-src/
-├── nucleo/                        # CAPA INTERNA (pura)
-│   ├── entidades/                 # Objetos de negocio con reglas
-│   │   ├── usuario.entidad.ts
-│   │   └── producto.entidad.ts
-│   ├── casos-uso/                 # Acciones del sistema
-│   │   ├── usuario/
-│   │   │   ├── crear-usuario.caso-uso.ts
-│   │   │   ├── obtener-usuario.caso-uso.ts
-│   │   │   └── actualizar-usuario.caso-uso.ts
-│   │   └── producto/
-│   └── puertos/                   # Interfaces/Contratos
-│       ├── repositorios/
-│       │   └── usuario.repositorio.puerto.ts
-│       └── servicios/
-│           └── correo.servicio.puerto.ts
-│
-├── adaptadores/                   # CAPA MEDIA (conecta)
-│   ├── controladores/
-│   │   └── usuario.controlador.ts
-│   ├── repositorios/
-│   │   └── usuario.repositorio.typeorm.ts
-│   └── servicios-externos/
-│       └── correo-sendgrid.servicio.ts
-│
-├── infraestructura/               # CAPA EXTERNA (framework)
-│   ├── configuracion/
-│   ├── modulos/
-│   │   └── usuario.modulo.ts
-│   └── base-datos/
-│       ├── esquemas/
-│       └── migraciones/
-│
-└── compartido/
-    ├── excepciones/
-    ├── validadores/
-    └── tipos/
+src/app/
+├── nucleo/ # Servicios globales, guardias, interceptores
+├── compartido/ # Componentes, tuberías, directivas reutilizables
+├── admin/ # Panel administrativo
+│ ├── diseno-admin/ # Layout admin
+│ └── funcionalidades/
+│ ├── panel-principal/
+│ ├── productos-admin/
+│ ├── personalizador-sitio/ # ⭐ Configura secciones visuales
+│ └── secciones-disponibles/ # ⭐ Catálogo de secciones
+├── tienda/ # Experiencia cliente
+│ ├── diseno-tienda/ # Layout tienda
+│ └── funcionalidades/
+│ ├── secciones-dinamicas/ # ⭐ Renderiza config del admin
+│ ├── inicio/
+│ ├── catalogo/
+│ ├── producto-detalle/
+│ ├── carrito/
+│ └── checkout/
+└── estado-global/
+
+CADA FUNCIONALIDAD CONTIENE:
+├── componentes/
+├── paginas/
+├── estado/ # acciones, reductor, selectores, efectos
+├── servicios/
+├── modelos/
+└── [nombre].rutas.ts
 
 ═══════════════════════════════════════════════════════════════
 NOMENCLATURA ARCHIVOS
 ═══════════════════════════════════════════════════════════════
-Entidades:      [nombre].entidad.ts
-Casos de uso:   [accion]-[entidad].caso-uso.ts
-Puertos:        [nombre].[tipo].puerto.ts
-Controladores:  [nombre].controlador.ts
-Repositorios:   [nombre].repositorio.[impl].ts
-Servicios:      [nombre]-[proveedor].servicio.ts
-Módulos:        [nombre].modulo.ts
+Componentes: [nombre].componente.ts
+Páginas: [nombre]-pagina.componente.ts
+Servicios: [nombre].servicio.ts / [nombre]-api.servicio.ts
+Acciones: [nombre].acciones.ts
+Reductor: [nombre].reductor.ts
+Selectores: [nombre].selectores.ts
+Efectos: [nombre].efectos.ts
+Modelos: [nombre].modelo.ts
+Guardias: [nombre].guardia.ts
+Tuberías: [nombre].tuberia.ts
+Rutas: [nombre].rutas.ts
 
 ═══════════════════════════════════════════════════════════════
-REGLAS DE IMPORTACIÓN
+ANGULAR MODERNO (OBLIGATORIO)
 ═══════════════════════════════════════════════════════════════
-PERMITIDO:
-✓ Infraestructura → Adaptadores → Núcleo
-✓ Casos de Uso → Entidades y Puertos
+USAR:
+✓ standalone: true (sin NgModules)
+✓ signals: signal(), computed(), effect()
+✓ input() / output() en lugar de decoradores
+✓ inject() en lugar de constructor
+✓ @if, @for, @switch (nueva sintaxis)
+✓ provideRouter, provideHttpClient, provideStore
 
-PROHIBIDO:
-✗ Núcleo → Adaptadores o Infraestructura
-✗ Entidades → Cualquier otra capa
+NO USAR:
+✗ NgModules para componentes
+✗ @Input() / @Output() decoradores
+✗ *ngIf, *ngFor, [ngSwitch]
 
-═══════════════════════════════════════════════════════════════
-ENTIDAD (Reglas de negocio puras)
-═══════════════════════════════════════════════════════════════
-// nucleo/entidades/usuario.entidad.ts
-
-export class Usuario {
-  private readonly _id: string;
-  private _nombre: string;
-  private _correo: string;
-  private _activo: boolean;
-
-  constructor(props: { id: string; nombre: string; correo: string }) {
-    // PASO 1: Validamos datos
-    this.validarNombre(props.nombre);
-    this.validarCorreo(props.correo);
-    
-    // PASO 2: Asignamos valores
-    this._id = props.id;
-    this._nombre = props.nombre;
-    this._correo = props.correo;
-    this._activo = true;
-  }
-
-  // ─── Reglas de negocio ───
-  desactivar(): void {
-    if (!this._activo) throw new Error('Usuario ya desactivado');
-    this._activo = false;
-  }
-
-  // ─── Validaciones privadas ───
-  private validarCorreo(correo: string): void {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      throw new Error('Correo inválido');
-    }
-  }
-
-  private validarNombre(nombre: string): void {
-    if (!nombre || nombre.length < 2) {
-      throw new Error('Nombre debe tener al menos 2 caracteres');
-    }
-  }
-
-  // ─── Getters ───
-  get id(): string { return this._id; }
-  get nombre(): string { return this._nombre; }
-  get correo(): string { return this._correo; }
-  get activo(): boolean { return this._activo; }
-}
-
-═══════════════════════════════════════════════════════════════
-PUERTO (Contrato/Interfaz)
-═══════════════════════════════════════════════════════════════
-// nucleo/puertos/repositorios/usuario.repositorio.puerto.ts
-
-import { Usuario } from '../../entidades/usuario.entidad';
-
-export interface UsuarioRepositorioPuerto {
-  buscarPorId(id: string): Promise<Usuario | null>;
-  buscarPorCorreo(correo: string): Promise<Usuario | null>;
-  guardar(usuario: Usuario): Promise<void>;
-  actualizar(usuario: Usuario): Promise<void>;
-  eliminar(id: string): Promise<void>;
-  existeCorreo(correo: string): Promise<boolean>;
-}
-
-═══════════════════════════════════════════════════════════════
-CASO DE USO (Una acción del sistema)
-═══════════════════════════════════════════════════════════════
-// nucleo/casos-uso/usuario/crear-usuario.caso-uso.ts
-
-import { Usuario } from '../../entidades/usuario.entidad';
-import { UsuarioRepositorioPuerto } from '../../puertos/repositorios/usuario.repositorio.puerto';
-import { CorreoServicioPuerto } from '../../puertos/servicios/correo.servicio.puerto';
-
-export interface CrearUsuarioEntrada {
-  nombre: string;
-  correo: string;
-}
-
-export interface CrearUsuarioSalida {
-  id: string;
-  nombre: string;
-  correo: string;
-}
-
-export class CrearUsuarioCasoUso {
-  constructor(
-    private readonly usuarioRepo: UsuarioRepositorioPuerto,
-    private readonly correoServicio: CorreoServicioPuerto,
-  ) {}
-
-  async ejecutar(entrada: CrearUsuarioEntrada): Promise<CrearUsuarioSalida> {
-    // PASO 1: Verificamos que correo no exista
-    if (await this.usuarioRepo.existeCorreo(entrada.correo)) {
-      throw new Error('Correo ya registrado');
-    }
-
-    // PASO 2: Creamos entidad (valida reglas de negocio)
-    const usuario = new Usuario({
-      id: crypto.randomUUID(),
-      nombre: entrada.nombre,
-      correo: entrada.correo,
-    });
-
-    // PASO 3: Guardamos en repositorio
-    await this.usuarioRepo.guardar(usuario);
-
-    // PASO 4: Enviamos correo de bienvenida
-    await this.correoServicio.enviarBienvenida(usuario.correo, usuario.nombre);
-
-    // PASO 5: Retornamos datos
-    return {
-      id: usuario.id,
-      nombre: usuario.nombre,
-      correo: usuario.correo,
-    };
-  }
-}
-
-═══════════════════════════════════════════════════════════════
-CONTROLADOR (Recibe HTTP, llama caso de uso)
-═══════════════════════════════════════════════════════════════
-// adaptadores/controladores/usuario.controlador.ts
-
-import { Controller, Post, Get, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
-import { CrearUsuarioCasoUso } from '../../nucleo/casos-uso/usuario/crear-usuario.caso-uso';
-
-@Controller('usuarios')
-export class UsuarioControlador {
-  constructor(private readonly crearUsuario: CrearUsuarioCasoUso) {}
-
-  @Post()
-  async crear(@Body() datos: { nombre: string; correo: string }) {
-    try {
-      // PASO 1: Ejecutamos caso de uso
-      const resultado = await this.crearUsuario.ejecutar(datos);
-      
-      // PASO 2: Retornamos respuesta
-      return { exito: true, datos: resultado };
-    } catch (error) {
-      throw new HttpException(
-        { exito: false, mensaje: error.message },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-}
-
-═══════════════════════════════════════════════════════════════
-REPOSITORIO (Implementa puerto)
-═══════════════════════════════════════════════════════════════
-// adaptadores/repositorios/usuario.repositorio.typeorm.ts
-
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Usuario } from '../../nucleo/entidades/usuario.entidad';
-import { UsuarioRepositorioPuerto } from '../../nucleo/puertos/repositorios/usuario.repositorio.puerto';
-import { UsuarioModelo } from '../../infraestructura/base-datos/esquemas/usuario.modelo';
-
-@Injectable()
-export class UsuarioRepositorioTypeORM implements UsuarioRepositorioPuerto {
-  constructor(
-    @InjectRepository(UsuarioModelo)
-    private readonly repo: Repository<UsuarioModelo>,
-  ) {}
-
-  async buscarPorId(id: string): Promise<Usuario | null> {
-    const modelo = await this.repo.findOne({ where: { id } });
-    return modelo ? this.aEntidad(modelo) : null;
-  }
-
-  async guardar(usuario: Usuario): Promise<void> {
-    await this.repo.save(this.aModelo(usuario));
-  }
-
-  async existeCorreo(correo: string): Promise<boolean> {
-    return (await this.repo.count({ where: { correo } })) > 0;
-  }
-
-  // ─── Conversiones ───
-  private aEntidad(m: UsuarioModelo): Usuario {
-    return new Usuario({ id: m.id, nombre: m.nombre, correo: m.correo });
-  }
-
-  private aModelo(e: Usuario): UsuarioModelo {
-    const m = new UsuarioModelo();
-    m.id = e.id;
-    m.nombre = e.nombre;
-    m.correo = e.correo;
-    return m;
-  }
-}
-
-═══════════════════════════════════════════════════════════════
-MÓDULO (Conecta todo con inyección)
-═══════════════════════════════════════════════════════════════
-// infraestructura/modulos/usuario.modulo.ts
-
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsuarioControlador } from '../../adaptadores/controladores/usuario.controlador';
-import { CrearUsuarioCasoUso } from '../../nucleo/casos-uso/usuario/crear-usuario.caso-uso';
-import { UsuarioRepositorioTypeORM } from '../../adaptadores/repositorios/usuario.repositorio.typeorm';
-import { CorreoSendgridServicio } from '../../adaptadores/servicios-externos/correo-sendgrid.servicio';
-import { UsuarioModelo } from '../base-datos/esquemas/usuario.modelo';
-
-@Module({
-  imports: [TypeOrmModule.forFeature([UsuarioModelo])],
-  controllers: [UsuarioControlador],
-  providers: [
-    // Repositorios
-    { provide: 'UsuarioRepositorioPuerto', useClass: UsuarioRepositorioTypeORM },
-    
-    // Servicios externos
-    { provide: 'CorreoServicioPuerto', useClass: CorreoSendgridServicio },
-    
-    // Casos de uso
-    {
-      provide: CrearUsuarioCasoUso,
-      useFactory: (repo, correo) => new CrearUsuarioCasoUso(repo, correo),
-      inject: ['UsuarioRepositorioPuerto', 'CorreoServicioPuerto'],
-    },
-  ],
+EJEMPLO COMPONENTE:
+@Component({
+selector: 'app-tarjeta-producto',
+standalone: true,
+imports: [CommonModule],
+changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UsuarioModulo {}
+export class TarjetaProductoComponente {
+producto = input.required<Producto>();
+alAgregar = output<Producto>();
+
+tieneDescuento = computed(() => this.producto().precioOferta !== null);
+}
 
 ═══════════════════════════════════════════════════════════════
-RESUMEN RESPONSABILIDADES
+NGRX MODERNO (OBLIGATORIO)
 ═══════════════════════════════════════════════════════════════
-┌──────────────────┬────────────────────────────────────────┐
-│ CAPA             │ RESPONSABILIDAD                        │
-├──────────────────┼────────────────────────────────────────┤
-│ Entidades        │ Reglas de negocio, validaciones        │
-│ Casos de Uso     │ Orquestan acciones, usan puertos       │
-│ Puertos          │ Contratos (QUÉ, no CÓMO)               │
-│ Controladores    │ Reciben HTTP, llaman casos de uso      │
-│ Repositorios     │ Implementan acceso a datos             │
-│ Módulos          │ Conectan todo con inyección            │
-└──────────────────┴────────────────────────────────────────┘
+ACCIONES (createActionGroup):
+export const CarritoPaginaAcciones = createActionGroup({
+source: 'Carrito Pagina',
+events: {
+'Agregar Producto': props<{ productoId: string; cantidad: number }>(),
+'Eliminar Item': props<{ itemId: string }>(),
+},
+});
+
+REDUCTOR (createFeature):
+export const carritoFeature = createFeature({
+name: 'carrito',
+reducer: createReducer(
+estadoInicial,
+on(CarritoPaginaAcciones.agregarProducto, (estado) => ({
+...estado,
+estaCargando: true,
+})),
+),
+});
+
+export const { selectItems, selectEstaCargando } = carritoFeature;
+
+EFECTOS (funcionales):
+export const cargarCarrito = createEffect(
+(acciones$ = inject(Actions), api = inject(CarritoApiServicio)) => {
+return acciones$.pipe(
+ofType(CarritoPaginaAcciones.cargarCarrito),
+mergeMap(() => api.obtener().pipe(
+map((items) => CarritoApiAcciones.cargarExito({ items })),
+catchError((e) => of(CarritoApiAcciones.cargarError({ error: e.message })))
+))
+);
+},
+{ functional: true }
+);
+
+═══════════════════════════════════════════════════════════════
+FILOSOFÍA SHOPIFY - SECCIONES DINÁMICAS
+═══════════════════════════════════════════════════════════════
+CONCEPTO:
+Admin configura secciones (carrusel, banner, productos destacados)
+→ Se guarda en BD
+→ Cliente las renderiza dinámicamente
+
+TIPOS DE SECCIONES:
+'carrusel' | 'banner-hero' | 'productos-destacados' | 'categorias' |
+'testimonios' | 'newsletter' | 'galeria' | 'texto-imagen' | 'video'
+
+MODELO BASE SECCIÓN:
+interface SeccionBase {
+id: string;
+tipo: TipoSeccion;
+orden: number;
+visible: boolean;
+configuracion: Record<string, any>;
+}
+
+RENDERIZADOR (en tienda):
+@for (seccion of secciones(); track seccion.id) {
+@switch (seccion.tipo) {
+@case ('carrusel') {
+<app-seccion-carrusel [config]="seccion.configuracion" />
+}
+@case ('banner-hero') {
+<app-seccion-banner-hero [config]="seccion.configuracion" />
+}
+}
+}
 
 ═══════════════════════════════════════════════════════════════
 COMENTARIOS EN CÓDIGO
 ═══════════════════════════════════════════════════════════════
-Usar PASOS para explicar flujos:
-// PASO 1: Validamos entrada
-// PASO 2: Ejecutamos lógica
-// PASO 3: Guardamos resultado
+Usar FASES o PASOS para explicar flujos:
+// FASE 1: Validamos datos de entrada
+// FASE 2: Llamamos al servicio
+// FASE 3: Actualizamos el estado
 
-NO saturar de comentarios. Solo lo necesario.
+NO saturar de comentarios. Solo lo necesario para entender.

@@ -1,0 +1,363 @@
+---
+alwaysApply: true
+---
+
+# Reglas para Proyectos Shopify
+
+## Idioma
+
+- Todo el código, comentarios y comunicación debe ser en ESPAÑOL
+- Claridad sobre tecnicismos innecesarios
+- Comentarios concisos y directos, sin etiquetas como "FASE 1", "ETAPA 2" a menos que sea estrictamente necesario
+
+## Filosofía del Proyecto
+
+### No Reinventar la Rueda
+
+- Siempre revisar primero qué recursos ya tiene el tema (componentes, estilos, funciones)
+- Usar la infraestructura existente antes de crear algo nuevo
+- Si el tema tiene un componente similar, adaptarlo en lugar de crear uno desde cero
+
+### Respetar la Identidad Visual
+
+- Seguir estrictamente las variables CSS y estilos globales del tema
+- NO introducir colores nuevos sin consultar
+- NO agregar iconos que no sigan la línea gráfica del proyecto
+- Mantener coherencia con el diseño UI/UX existente
+- Usar la paleta de colores, tipografías y espaciados definidos en el tema
+
+### Lógica y Servicios Existentes
+
+- Si el tema usa servicios de validación o lógica específica (por personalización), seguir ese patrón
+- No cambiar la arquitectura de trabajo establecida
+- Respetar las integraciones y flujos de trabajo ya implementados
+
+## Buenas Prácticas de Shopify
+
+### Liquid
+
+- Seguir las convenciones de Shopify para templates y sections
+- Usar snippets para código reutilizable
+- Aprovechar los objetos de Liquid nativos antes de crear lógica custom
+- Optimizar bucles y consultas para rendimiento
+
+### JavaScript
+
+- Código limpio y modular
+- Evitar conflictos con el JS del tema base
+- Usar event delegation cuando sea apropiado
+- Minimizar manipulación directa del DOM
+- Considerar compatibilidad con el theme.js existente
+
+### CSS
+
+- Seguir la metodología de CSS del tema (BEM, utility-first, etc.)
+- Usar variables CSS existentes (`--color-primary`, `--spacing-unit`, etc.)
+- NO crear nuevas variables sin revisar las existentes primero
+- Mantener especificidad baja y predecible
+
+### HTML
+
+- Semántica correcta
+- Accesibilidad (ARIA labels, roles, etc.)
+- Estructura coherente con el resto del tema
+
+## Rendimiento y Optimización
+
+### Assets y Recursos
+
+- Implementar lazy loading para imágenes (usar `loading="lazy"` o solución del tema)
+- Minimizar número de requests HTTP
+- Comprimir y optimizar imágenes antes de subirlas
+- Usar formatos modernos (WebP con fallback a JPG/PNG)
+- Cargar JS de forma asíncrona cuando sea posible
+- Critical CSS inline solo si es necesario
+
+### Código Eficiente
+
+- Evitar código bloqueante en el head
+- Minimizar re-renders y manipulaciones del DOM
+- Usar debounce/throttle en eventos de scroll o resize
+- Cachear selectores de DOM cuando se reutilicen
+- Eliminar código no utilizado antes de deployment
+
+## Enfoque Mobile-First
+
+- Siempre diseñar y desarrollar pensando primero en móvil
+- Usar media queries para escalar hacia arriba (tablets, desktop)
+- Probar responsividad en diferentes dispositivos
+- Puntos de quiebre coherentes con el tema existente
+
+## Versionamiento y Gestión de Archivos
+
+### Temas Comprados
+
+- NUNCA modificar directamente archivos del tema base
+- Crear archivos custom con nombres descriptivos (ej: `custom-slider.liquid`, `producto-personalizado.js`)
+- Documentar qué archivos originales se están extendiendo o reemplazando
+- Mantener respaldo de archivos modificados del tema original
+- Si el tema se actualiza, verificar compatibilidad con tus customizaciones
+
+### Organización de Archivos Custom
+
+- Usar prefijos claros: `custom-`, `cliente-`, `proyecto-`
+- Agrupar funcionalidades relacionadas en el mismo archivo cuando sea posible
+- Comentar al inicio del archivo su propósito y dependencias
+
+### Control de Cambios
+
+- Documentar cambios significativos en comentarios del código
+- Guardar versiones antes de modificaciones importantes
+- Si trabajas con Git, commits descriptivos en español
+
+## Proceso de Desarrollo
+
+### Antes de Empezar
+
+1. Revisar la estructura del tema actual
+2. Identificar componentes, estilos y funciones existentes
+3. Verificar variables CSS y tokens de diseño
+4. Entender la lógica de negocio implementada
+
+### Durante el Desarrollo
+
+- Reutilizar antes de crear
+- Mantener la coherencia visual
+- Seguir los patrones establecidos
+- Documentar solo cuando sea necesario para claridad
+
+### Componentes Nuevos
+
+- Solo crear si no existe alternativa en el tema
+- Seguir el sistema de diseño existente
+- Mobile-first siempre
+- Integrar con la arquitectura actual
+
+## Estructura de Archivos Shopify
+
+### Ubicación de Código Custom
+
+**JavaScript:**
+
+- Funciones generales y globales → `assets/custom-global.js`
+- JS específico de una sección → dentro del `<script>` de la section
+- JS compartido entre varias secciones → `assets/` + incluir en layout
+- Librerías externas → `assets/` con vendor prefix: `vendor-swiper.js`
+
+**CSS:**
+
+- Estilos globales custom → `assets/custom-global.css` o al final del CSS principal
+- Estilos de sección específica → dentro de `<style>` en la section
+- Usar `{{ 'archivo.css' | asset_url | stylesheet_tag }}` para incluir
+
+**Liquid:**
+
+- Componentes reutilizables → `snippets/custom-nombre.liquid`
+- Lógica de página completa → `sections/custom-nombre.liquid`
+- Layouts alternativos → `layout/theme.alternate.liquid`
+- Templates de producto/colección custom → `templates/product.custom.json`
+
+### Cuándo Usar Cada Tipo
+
+**Sections:**
+
+- Bloques de contenido editables desde el Theme Editor
+- Componentes que el cliente necesita activar/desactivar
+- Contenido que se repite en varias páginas
+- Requieren schema para configuración
+
+**Snippets:**
+
+- Código reutilizable sin configuración del editor
+- Componentes puros (botones, cards, etc.)
+- Includes dentro de sections o templates
+- Lógica compartida entre varios archivos
+
+**Templates:**
+
+- Estructura completa de un tipo de página
+- Usar JSON templates (Shopify 2.0) cuando sea posible
+- Solo crear alternativas si el tema base no sirve
+
+## Shopify 2.0 - Secciones y Bloques
+
+### Secciones Dinámicas
+
+- Aprovechar el sistema de secciones arrastrables
+- Usar `{% schema %}` para definir configuraciones editables
+- Permitir que el cliente personalice sin tocar código
+- Pensar en flexibilidad: ¿puede el cliente necesitar 2 de estos componentes?
+
+### Bloques Reutilizables
+
+- Usar `blocks` dentro del schema cuando el contenido se repita
+- Limitar cantidad de bloques si es necesario con `max_blocks`
+- Dar nombres descriptivos en español a settings y bloques
+- Valores por defecto sensatos en `default` y `presets`
+
+### JSON Templates
+
+- Priorizar JSON templates sobre Liquid templates cuando sea posible
+- Permiten mayor flexibilidad para el cliente
+- Revisar si el tema ya usa este sistema antes de crear templates Liquid
+
+### Schema Settings - Buenas Prácticas
+
+```liquid
+{% schema %}
+{
+  "name": "Nombre Descriptivo en Español",
+  "settings": [
+    {
+      "type": "text",
+      "id": "titulo",
+      "label": "Título",
+      "default": "Valor por defecto",
+      "info": "Ayuda al cliente a entender para qué sirve"
+    }
+  ]
+}
+{% endschema %}
+```
+
+- IDs en español o inglés según convención del tema
+- Labels siempre en español
+- Info text para guiar al cliente
+- Agrupar settings relacionados
+
+## Preguntas Clave
+
+Antes de implementar, preguntarse:
+
+- ¿Ya existe algo similar en el tema?
+- ¿Estoy usando las variables y estilos del proyecto?
+- ¿Sigo el patrón mobile-first?
+- ¿Respeto la lógica de negocio existente?
+- ¿Es necesario este comentario o puedo simplificarlo?
+
+## Gestión de Errores y Validaciones
+
+### JavaScript
+
+- Siempre incluir try-catch en código que pueda fallar
+- Proporcionar fallbacks si JS no carga o falla
+- Mensajes de error claros en español para el usuario
+- console.error para debugging, pero limpiarlo en producción
+- Verificar que elementos existen antes de manipularlos
+
+```javascript
+// Ejemplo
+const elemento = document.querySelector(".mi-elemento");
+if (elemento) {
+  // código seguro
+} else {
+  console.warn("Elemento .mi-elemento no encontrado");
+}
+```
+
+### Validación de Formularios
+
+- Validar en frontend Y backend cuando sea posible
+- Mensajes de error específicos y útiles en español
+- Feedback visual claro (colores, iconos del tema)
+- Seguir patrones de validación del tema existente
+- Accesibilidad: usar `aria-invalid`, `aria-describedby`
+
+### Liquid
+
+- Usar `if` para verificar existencia de objetos antes de usarlos
+- Proporcionar contenido fallback si falta información
+- Manejar casos donde productos/colecciones estén vacíos
+
+```liquid
+{% if producto.featured_image %}
+  {{ producto.featured_image | image_url: width: 600 | image_tag }}
+{% else %}
+  <div class="placeholder-image">Sin imagen</div>
+{% endif %}
+```
+
+### Progressive Enhancement
+
+- El sitio debe funcionar sin JavaScript (básicamente)
+- Mejoras interactivas como capa adicional
+- Formularios deben funcionar con y sin JS
+
+## Convenciones de Nombres
+
+### Clases CSS
+
+- Seguir la convención del tema (inglés o español)
+- Si el tema usa inglés, mantener inglés
+- Si es código totalmente custom, usar español claro
+- Ser consistente en todo el proyecto
+- Ejemplos: `producto-card`, `boton-principal`, `seccion-testimonios`
+
+### Variables JavaScript
+
+- camelCase para variables y funciones
+- Nombres descriptivos en español
+- Evitar abreviaciones confusas
+- Constantes en MAYÚSCULAS si son globales
+
+```javascript
+// Bien
+const carritoItems = [];
+const calcularTotal = () => {};
+const PRECIO_ENVIO = 50;
+
+// Evitar
+const ci = [];
+const calc = () => {};
+```
+
+### IDs HTML
+
+- Únicos en toda la página
+- Descriptivos y en español
+- kebab-case: `producto-destacado`, `formulario-contacto`
+- Solo usar si es absolutamente necesario (preferir clases)
+
+### Archivos
+
+- Nombres descriptivos y en español
+- Usar guiones: `custom-slider-productos.liquid`
+- Prefijo según tipo: `custom-`, `seccion-`, `snippet-`
+- Evitar espacios y caracteres especiales
+
+## Integración de Código Nuevo al Tema
+
+### Checklist Antes de Integrar
+
+1. ¿Revisé si ya existe algo similar en el tema?
+2. ¿Estoy usando las variables CSS del tema?
+3. ¿Mi JavaScript no genera conflictos con el JS del tema?
+4. ¿Probé en mobile, tablet y desktop?
+5. ¿Los nombres siguen las convenciones del proyecto?
+6. ¿Agregué comentarios solo donde sea necesario?
+7. ¿Funciona sin JavaScript (progressive enhancement)?
+8. ¿Los mensajes de error están en español?
+
+### Integración Segura
+
+- Probar primero en tema de desarrollo/duplicado
+- Verificar que no rompe funcionalidad existente
+- Asegurar que el código es reversible
+- Documentar dependencias si las hay
+- No asumir que ciertos elementos existen, validar siempre
+
+### Testing Básico
+
+- Probar en Chrome, Safari, Firefox mínimo
+- Mobile real, no solo DevTools
+- Con JavaScript deshabilitado (funcionalidad básica)
+- Diferente contenido: textos largos, sin imágenes, etc.
+- Probar los casos extremos y escenarios de error
+
+## Recordatorios
+
+- El tema puede venir altamente personalizado
+- Servicios externos y validaciones custom pueden estar integrados
+- Seguir la línea de trabajo establecida es PRIORITARIO
+- La coherencia visual es tan importante como la funcional
+- Menos es más: código simple y directo
